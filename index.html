@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<style type="text/css">
+  /*css to go here*/
+  body {
+    font-family: monospace;
+    font-size: 11px;
+    color:white;
+    background-size: cover;
+    background-color:#3c4149;
+
+}
+
+svg {
+/*  border: 1px solid #f0f;
+*/  /*color: white;*/
+    fill: white;
+    z-index: 100;
+}
+
+.date-title {
+  font-size:24px;
+  font-family:monospace;
+  color:white;
+  text-align: center;
+}
+
+.NO2-line {
+  stroke: pink;
+  stroke-width: 3;
+  fill: none;
+}
+
+.Axis line,
+.Axis path {
+  filL:none;
+  stroke:white;
+  stroke-width:1;
+}
+
+.Axis text {
+  color:white;
+}
+
+.NO2-circle {
+  fill: pink;
+  stroke-width: 1;
+}
+
+.NOx-circle {
+  fill: cyan;
+  stroke-width: 2;
+}
+
+.CO-circle {
+  fill:green;
+  stroke-width: 2;
+}
+
+.O3-circle {
+  fill:orange;
+  stroke-width: 2;
+}
+
+.PM10-circle {
+  fill:lightblue;
+  stroke-width: 2;
+}
+
+.PM25-circle {
+  fill:yellow;
+  stroke-width: 2;
+}
+
+.SO2-circle {
+  fill:#f0f;
+  stroke-width: 2;
+}
+
+.area {
+  fill:white;
+}
+
+.y-axis-label {
+  margin-left:0px;
+}
+
+.g-date-buttons {
+  font-family: helvetica;
+  font-weight:bold;
+  color:#3c4149;
+  border-right: 0.5px solid white;
+  border-bottom: 0.5px solid white;
+  border-top:none;
+  border-left:none;
+  padding: 8px 9px;
+  background: rgba(255, 255, 255, 0.6);
+  margin:2px;
+}
+
+.g-date-buttons:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.g-date-buttons:active {
+  transform: translateY(1px);
+  box-shadow:none;
+  }
+
+.g-date-buttons:hover {
+  outline:none;
+}
+
+.g-date-buttons:visited {
+  box-shadow: none;
+  outline: none;
+  }
+
+video#hourbg { 
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    z-index: -100;
+    -ms-transform: translateX(-50%) translateY(-50%);
+    -moz-transform: translateX(-50%) translateY(-50%);
+    -webkit-transform: translateX(-50%) translateY(-50%);
+    transform: translateX(-50%) translateY(-50%);
+/*    background: url(hour13.png) no-repeat;
+*/    background-size: cover; 
+}
+
+
+.chart {
+  z-index: 101;
+}
+
+.tooltip p {
+  font-size:12px;
+  border-bottom: 1px solid white;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  width: 140px;
+}
+
+  .tooltip:after {
+    display:block;
+    font-size:12px;
+    line-height: 10px;
+    color:white;
+    opacity:0.85;
+    content: "\25BC";
+    position:absolute;
+    text-align:center;
+    pointer-events:none;
+    width: 140px;
+
+  }
+
+
+</style>
+
+<body>
+
+<div class="date-title">Choose a Date: </div> <div class="button-container"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js" charset="utf-8"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+<script>
+//JS to go here
+
+var margin = {top: 20, right: 40, bottom: 40, left: 70};
+
+var width = 1600 - margin.left - margin.right,
+    height = 800 - margin.top - margin.bottom;
+
+var svg = d3.select("body").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+    .attr("class", "chart");
+
+
+
+var xScale = d3.scale.linear()
+  .range([0,width])
+  .domain([0,23]);
+
+var yScale = d3.scale.linear()
+  .range([height, 0])
+  .domain([0, 200]);
+
+
+var NO2lineGen = d3.svg.line()
+  .x(function(d) {return xScale(d.key);})
+  .y(function(d){return yScale(d.values[0].NO2);});
+
+
+var NOxlineGen = d3.svg.line()
+  .x(function(d) {return xScale(d.key);})
+  .y(function(d){return yScale(d.values[0].NOx);});
+
+var COlineGen = d3.svg.line()
+  .x(function(d) {return xScale(d.key);})
+  .y(function(d){return yScale(d.values[0].CO);});
+
+var O3lineGen = d3.svg.line()
+  .x(function(d) {return xScale(d.key);})
+  .y(function(d){return yScale(d.values[0].O3);});
+
+var PM10lineGen = d3.svg.line()
+  .x(function(d) {return xScale(d.key);})
+  .y(function(d){return yScale(d.values[0].PM10);});
+
+var PM25lineGen = d3.svg.line()
+  .x(function(d) {return xScale(d.key);})
+  .y(function(d){return yScale(d.values[0].PM25);});
+
+var SO2lineGen = d3.svg.line()
+  .x(function(d) {return xScale(d.key);})
+  .y(function(d){return yScale(d.values[0].SO2);});
+
+
+var xAxis = d3.svg.axis()
+  .scale(xScale)
+  .orient("bottom")
+  .tickPadding(10)
+  // .tickFormat(d3.round)
+  .tickValues([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]);
+
+
+var yAxis = d3.svg.axis()
+  .scale(yScale)
+  .tickPadding(10)
+  .orient("left");
+
+var area = d3.svg.area()
+  .x(function(d) {return xScale(d.key);})
+  .y0(height)
+  .y1(function(d){console.log("d.values", yScale(d.values[0].NO2));});
+
+var tip = d3.tip()
+  .attr("class", "tooltip")
+  .offset([-15,0])
+  .html(function(d) {return "<p><b>NOx: </b>" + d.values[0].NOx + " µg/m3</p>" + 
+    "<p><b>NO2: </b>" + d.values[0].NO2 + " µg/m3</p>" + 
+    "<p><b>O3: </b>" + d.values[0].O3 + " µg/m3</p>" + 
+    "<p><b>PM10: </b>" + d.values[0].PM10 + " µg/m3</p>" + 
+    "<p><b>PM25: </b>" + d.values[0].PM25 + " µg/m3</p>" + 
+    "<p><b>SO2: </b>" + d.values[0].SO2 + " µg/m3</p>"
+});
+
+
+d3.csv("hcab.csv", ready);
+
+function ready(err, data) {
+    if (err) console.warn(err, "error loading data");
+
+data.forEach(function(d){
+  // d.CO = +d.CO * 1000;
+  d.NO2 = +d.NO2;
+  d.NOx = +d.NOx;
+  d.O3 = +d.O3;
+  d.PM10 = +d.PM10;
+  d.PM25 = +d.PM25;
+  d.SO2 = +d.SO2;
+  d.Tid = +d.Tid;
+});
+
+// console.log (data);
+
+
+// var carbon = data.map(function(d) { return d["CO mg/m3"]});
+
+var data = d3.nest()
+  .key(function(d) {return d.Dato; })
+  .key(function(d) { return d.Tid; })
+  .entries(data);
+
+
+// console.log(data);
+
+// var incomeByCountry = d3.nest()
+//   .key(function(d) {return d.country; })
+//   .entries(countryIncome);
+
+
+
+svg.append("g")
+  .attr("class", "Axis")
+  .attr("transform","translate(0, "+(height)+")")
+  .call(xAxis);
+
+svg.append("g")
+  .attr("class","Axis")
+  .call(yAxis);
+
+svg.append("div")
+  .text("µg/m3")
+  .attr("transform", "rotate(-90)")
+  .attr("class", "y-axis-label");
+
+d3.select(".button-container").selectAll(".g-date-buttons")
+  .data(data)
+  .enter().append("button")
+  .attr("class", "g-date-buttons")
+  .text(function(d) {return d.key;})
+  .on("click", function(d) {
+    title(d);
+    drawDate(d);
+  });
+
+
+
+function title(d) {
+
+  var title = d3.select(".date-title")
+  .text(function() {return d.key; });
+}
+
+
+
+
+function drawDate(d) {
+    svg.selectAll(".line").remove();
+    svg.selectAll("circle").remove();
+
+
+// console.log("d", d);
+
+
+  // svg.selectAll(".line")
+  // .data(d)
+  // .enter()
+  // .append("path")
+  // .attr("class", "line")
+  // .attr("d", lineGen(d.values))
+  // .attr("stroke","yellow")
+  //                           .attr("stroke-width", 2)
+  //                           .attr("fill", "none");
+
+  // var NO2Container = svg.append("g").selectAll(".NO2-line")
+  // .data(d.values)
+  // .enter()
+  // .append("path")
+  // .attr("class", "NO2-line")
+  // .attr("d", function(d){return lineGen(d);})
+  // .attr("d", function(d){console.log("d.values[0].NO2", d.values[0].NO2);})
+  // .attr("d", function(d){console.log("d.key", d.key);});
+
+svg.append("path")
+  .data(d.values)
+  .attr("class", "area")
+  .attr("d", area);
+
+var NO2Container = svg.append("path")
+  .attr("d", NO2lineGen(d.values))
+  .attr("stroke", "pink")
+  .attr("stroke-width", 1)
+  .attr("fill", "none")
+  .attr("class", "line");
+
+var NOxContainer = svg.append("path")
+  .attr("d", NOxlineGen(d.values))
+  .attr("stroke", "cyan")
+  .attr("stroke-width", 1)
+  .attr("fill", "none")
+  .attr("class", "line");
+
+// var COContainer = svg.append("path")
+//   .attr("d", COlineGen(d.values))
+//   .attr("stroke", "green")
+//   .attr("stroke-width", 1)
+//   .attr("fill", "none")
+//   .attr("class", "line");
+
+var O3Container = svg.append("path")
+  .attr("d", O3lineGen(d.values))
+  .attr("stroke", "orange")
+  .attr("stroke-width", 1)
+  .attr("fill", "none")
+  .attr("class", "line");
+
+var PM10Container = svg.append("path")
+  .attr("d", PM10lineGen(d.values))
+  .attr("stroke", "lightblue")
+  .attr("stroke-width", 1)
+  .attr("fill", "none")
+  .attr("class", "line");
+
+
+var PM25Container = svg.append("path")
+  .attr("d", PM25lineGen(d.values))
+  .attr("stroke", "yellow")
+  .attr("stroke-width", 1)
+  .attr("fill", "none")
+  .attr("class", "line");
+
+var SO2Container = svg.append("path")
+  .attr("d", SO2lineGen(d.values))
+  .attr("stroke", "#f0f")
+  .attr("stroke-width", 1)
+  .attr("fill", "none")
+  .attr("class", "line");
+
+
+var NO2DataSel = svg.selectAll(".NO2-circle")
+  .data(d.values)
+  .enter()
+  .append("circle")
+
+// svg.selectAll("circle")
+  .attr("class", "NO2-circle")
+  .attr("cx", function(d){return xScale(d.key)})
+  // .attr("cy", function(d){return yScale(d.values.NO2)})
+  .attr("cy", function(d) {return yScale(d.values[0].NO2)})
+  .attr("r",3);
+
+var NOxDataSel = svg.selectAll(".NOx-circle")
+  .data(d.values)
+  .enter()
+  .append("circle")
+  .attr("class", "NOx-circle")
+  .attr("cx", function(d){return xScale(d.key)})
+  // .attr("cy", function(d){return yScale(d.values.NO2)})
+  .attr("cy", function(d) {return yScale(d.values[0].NOx)})
+  .attr("r",3);
+
+
+// var CODataSel = svg.selectAll(".CO-circle")
+//   .data(d.values)
+//   .enter()
+//   .append("circle")
+//   .attr("class", "CO-circle")
+//   .attr("cx", function(d){return xScale(d.key)})
+//   // .attr("cy", function(d){return yScale(d.values.NO2)})
+//   .attr("cy", function(d) {return yScale(d.values[0].CO)})
+//   .attr("r",3);
+
+
+var O3DataSel = svg.selectAll(".O3-circle")
+  .data(d.values)
+  .enter()
+  .append("circle")
+  .attr("class", "O3-circle")
+  .attr("cx", function(d){return xScale(d.key)})
+  // .attr("cy", function(d){return yScale(d.values.NO2)})
+  .attr("cy", function(d) {return yScale(d.values[0].O3)})
+  .attr("r",3);
+
+
+var PM10DataSel = svg.selectAll(".PM10-circle")
+  .data(d.values)
+  .enter()
+  .append("circle")
+  .attr("class", "PM10-circle")
+  .attr("cx", function(d){return xScale(d.key)})
+  // .attr("cy", function(d){return yScale(d.values.NO2)})
+  .attr("cy", function(d) {return yScale(d.values[0].PM10)})
+  .attr("r",3);
+
+
+var PM25DataSel = svg.selectAll(".PM25-circle")
+  .data(d.values)
+  .enter()
+  .append("circle")
+  .attr("class", "PM25-circle")
+  .attr("cx", function(d){return xScale(d.key)})
+  // .attr("cy", function(d){return yScale(d.values.NO2)})
+  .attr("cy", function(d) {return yScale(d.values[0].PM25)})
+  .attr("r",3);
+
+
+var SO2DataSel = svg.selectAll(".SO2-circle")
+  .data(d.values)
+  .enter()
+  .append("circle")
+  .attr("class", "SO2-circle")
+  .attr("cx", function(d){return xScale(d.key)})
+  // .attr("cy", function(d){return yScale(d.values.NO2)})
+  .attr("cy", function(d) {return yScale(d.values[0].SO2)})
+  .attr("r",3);
+
+
+svg.selectAll("circle")
+  .call(tip)
+  .on("mouseover", function(d) {
+    d3.select("body")
+      .attr("d", function() { console.log("d.key", d.key)})
+      // .attr("background", function() { 
+      //   if (d.key == 13) {return "hour13.png";}
+      //   else if (d.key == 14) {return "hour14.png";}
+      //   else if (d.key == 15) {return "hour15.png";}
+      //   else if (d.key == 16) {return "hour16.png";}
+      //   else if (d.key == 17) {return "hour17.png";}
+      //   else if (d.key == 18) {return "hour18.png";}
+      //   else if (d.key == 19) {return "hour19.png";}
+      // })
+
+
+      // .append("g")
+      // .html(function() {
+      //     if (d.key == 13) {return "<video playsinline autoplay loop id='hour13bg'><source src='hour13_traffic.ogg' type='video/webm'></video>";}
+      //     else if (d.key == 14) {return "<video playsinline autoplay loop id='hour14bg'><source src='hour14_traffic.ogg' type='video/webm'></video>";}
+
+
+    // })
+      // .attr("id", "hour13bg")
+      // .html("<source src='hour13_traffic.ogg' type='video/ogg'>")
+      // .html(function() { if (d.key == 13) {return "playsinline autoplay loop id='hour13bg'><source src='hour13_traffic.ogg' type='video/webm'></video>";}})
+    tip.show(d);
+
+  })
+
+    .on("click", function(d) {
+
+    d3.selectAll(".video").remove();
+
+    d3.select("body")
+          .append("g")
+          .attr("class", "video")
+      .html(function() {
+          if (d.key == 13) {return "<video playsinline autoplay loop poster='hour13_cover.png' id='hourbg'><source src='hour13_lores.mp4' type='video/mp4'></video>";}
+          else if (d.key == 14) {return "<video playsinline autoplay loop poster='hour14_cover.png' id='hourbg'><source src='hour14_lores.mp4' type='video/mp4'></video>";}
+          else if (d.key == 15) {return "<video playsinline autoplay loop poster='hour15_cover.png' id='hourbg'><source src='hour15_lores.mp4' type='video/mp4'></video>";}
+          else if (d.key == 16) {return "<video playsinline autoplay loop poster='hour16_cover.png' id='hourbg'><source src='hour16_lores.mp4' type='video/mp4'></video>";}
+          else if (d.key == 17) {return "<video playsinline autoplay loop poster='hour17_cover.png' id='hourbg'><source src='hour17_lores.mp4' type='video/mp4'></video>";}
+          else if (d.key == 18) {return "<video playsinline autoplay loop poster='hour18_cover.png' id='hourbg'><source src='hour18_lores.mp4' type='video/mp4'></video>";}
+          else if (d.key == 19) {return "<video playsinline autoplay loop poster='hour19_cover.png' id='hourbg'><source src='hour19_lores.mp4' type='video/mp4'></video>";}
+          else if (d.key == 20) {return "<video playsinline autoplay loop poster='hour20_cover.png' id='hourbg'><source src='hour20_lores.mp4' type='video/mp4'></video>";}
+          else if (d.key == 21) {return "<video playsinline autoplay loop poster='hour21_cover.png' id='hourbg'><source src='hour21_lores.mp4' type='video/mp4'></video>";}
+          else if (d.key == 22) {return "<video playsinline autoplay loop poster='hour22_cover.png' id='hourbg'><source src='hour22_lores.mp4' type='video/mp4'></video>";}
+        })})
+
+
+
+    .on("mouseout", function(d) {
+    tip.hide(d);
+    // d3.select(this)
+    //   .attr("class", "points")
+    //   .classed("mouseover", false);
+  });
+
+
+
+// svg.append("g").selectAll(".substance-labels")
+//   .data(d.values)
+//   .enter()
+//   .append("text")
+//   .attr("d", console.log("d.values", d.values))
+//   .attr("class", "substance-labels")
+//   .attr("x", 24)
+//   .attr("y", function(d) {return yScale(d.values[23].key.values[0])})
+//   .text(function(d) {return "hello"});
+
+
+
+
+}
+}
+
+</script>
+</body>
