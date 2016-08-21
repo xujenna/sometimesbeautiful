@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>TwitterWords</title>
+    <script src="libraries/p5.js" type="text/javascript"></script>
+
+    <script src="libraries/p5.dom.js" type="text/javascript"></script>
+    <script src="libraries/p5.sound.js" type="text/javascript"></script>
+<!--    
+<script src="libraries/papaparse.js" type="text/javascript"></script>
+-->
+    <script src="sketch.js" type="text/javascript"></script>
+
+    <style> body {font-family: monospace; padding: 0; margin: 0;} canvas {vertical-align: top;} </style>
+	<style>video#bgvid { 
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    z-index: -100;
+    -ms-transform: translateX(-50%) translateY(-50%);
+    -moz-transform: translateX(-50%) translateY(-50%);
+    -webkit-transform: translateX(-50%) translateY(-50%);
+    transform: translateX(-50%) translateY(-50%);
+    background: url(assets/hour13.mov) no-repeat;
+    background-size: cover; 
+	}
+	</style>
+  </head>
+  <body>
+	<video playsinline autoplay loop poster="assets/hour13_traffic_cover.png" id="bgvid">
+    	<source src="assets/hour13-22_traffic_lores.mp4" type="video/mp4">
+	</video>
+  </body>
+</html>
