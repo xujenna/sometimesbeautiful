@@ -116,23 +116,6 @@ svg {
   margin:2px;
 }
 
-.g-date-buttons:hover {
-  background: rgba(255, 255, 255, 0.45);
-}
-
-.g-date-buttons:active {
-  transform: translateY(1px);
-  box-shadow:none;
-  }
-
-.g-date-buttons:hover {
-  outline:none;
-}
-
-.g-date-buttons:visited {
-  box-shadow: none;
-  outline: none;
-  }
 
 video#hourbg { 
     position: fixed;
@@ -560,6 +543,8 @@ var SO2DataSel = svg.selectAll(".SO2")
 
 
 svg.selectAll("circle")
+    .attr("cursor", "pointer")
+
   // .call(tip)
   .on("mouseover", function(d) {
     d3.select("body")
